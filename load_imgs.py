@@ -1,6 +1,5 @@
 #! /usr/bin/python
 
-import cv2
 import cv
 import sys
 import numpy as np
@@ -12,7 +11,7 @@ def get_dictionary(path_to_dir):
         packed to the dictionary.
         
         Returns the dictionary containing image filename as label and
-        image as value."""
+        image as value (image type is cvmat)."""
    
 
     files = [ filename
@@ -28,8 +27,9 @@ def get_dictionary(path_to_dir):
         flnm = join(path_to_dir, flnm)
             
         # Image creation
-        img = cv.LoadImage(flnm, cv.CV_LOAD_IMAGE_UNCHANGED) ## Read image file
-        
+        img_bgr = cv.LoadImageM(flnm, cv.CV_LOAD_IMAGE_UNCHANGED) ## Read image file
+        img = cv.CreateMat(img_bgr.rows, img_bgr.cols, cv.CV_8UC3)
+        cv.CvtColor(img_bgr, img, cv.CV_BGR2YCrCb)
         
         #Add img to the idx_pic_dict dictionary
         if (img == None): ## Check for invalid input
@@ -38,6 +38,8 @@ def get_dictionary(path_to_dir):
             idx_pic_dict[str_idx] = img
     
     return idx_pic_dict
+
+            
     
 if __name__ == "__main__":
     pics_dict = get_dictionary("./test_pics")
