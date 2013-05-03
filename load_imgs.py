@@ -1,8 +1,6 @@
 #! /usr/bin/python
 
-import cv
-import sys
-import numpy as np
+import cv2
 from os import listdir
 from os.path import isfile, join
 
@@ -15,7 +13,8 @@ def get_dictionary(path_to_dir):
    
 
     files = [ filename
-        for filename in listdir(path_to_dir) if isfile(join(path_to_dir,filename)) ]
+             for filename in listdir(path_to_dir)
+             if isfile(join(path_to_dir,filename)) ]
         
     print files
         
@@ -27,9 +26,8 @@ def get_dictionary(path_to_dir):
         flnm = join(path_to_dir, flnm)
             
         # Image creation
-        img_bgr = cv.LoadImageM(flnm, cv.CV_LOAD_IMAGE_UNCHANGED) ## Read image file
-        img = cv.CreateMat(img_bgr.rows, img_bgr.cols, cv.CV_8UC3)
-        cv.CvtColor(img_bgr, img, cv.CV_BGR2YCrCb)
+        img_bgr = cv2.imread(flnm, cv2.CV_LOAD_IMAGE_UNCHANGED)
+        img = cv2.cvtColor(img_bgr, cv2.cv.CV_BGR2YCrCb)
         
         #Add img to the idx_pic_dict dictionary
         if (img == None): ## Check for invalid input
@@ -49,8 +47,8 @@ if __name__ == "__main__":
         two white chams.
     """
     for k, v in pics_dict.iteritems():
-        cv.NamedWindow(k, 2)
-        cv.ResizeWindow(k, 800, 600)
-        cv.ShowImage(k, v)
-        cv.WaitKey(0)
+        cv2.namedWindow(k,2)
+        cv2.resizeWindow(k, 800, 600)
+        cv2.imshow(k, v)
+        cv2.waitKey()
 
