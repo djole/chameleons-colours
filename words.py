@@ -1,5 +1,6 @@
 import numpy as np
 import unittest
+from decimal import Decimal
 
 WHITE_PADDING = 1
 BLACK_PADDING = 2
@@ -32,7 +33,10 @@ def get_image_pattern_words(image, word_cols,
             if not filter_word_with_padding(extract) : continue
             y_component = np.matrix(extract[0], dtype=extract.dtype)
             s_feat = y_component.mean()
-            p_feat = np.array(y_component.flatten() / s_feat)[0]
+            if Decimal(s_feat) != 0:
+                p_feat = np.array(y_component.flatten() / s_feat)[0]
+            else:
+                p_feat = np.array(y_component.flatten() * s_feat)[0]
             
             ''' channels[1] & [2] represent the colour component.
             Feature C is the chromatic pattern fearure'''
@@ -47,7 +51,10 @@ def get_image_pattern_words(image, word_cols,
             cr_subsampled = np.array([s for (idx,s) in enumerate(cr_flat) 
                                         if idx%subsamp == 0])
             c_feat = np.concatenate((cb_subsampled, cr_subsampled), axis=0)
-            c_feat /= float(s_feat)
+            if Decimal(s_feat) != 0 :
+                c_feat /= float(s_feat)
+            else:
+                c_feat *= 0
             
             feature_word = np.concatenate((p_feat, c_feat), axis=0)
             words.append(feature_word)
