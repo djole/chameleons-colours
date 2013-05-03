@@ -6,9 +6,9 @@ import time
 start_time = time.time()
 window_size = 10
 
-w_pool = mproc.Pool(processes = 5, maxtasksperchild = 2)
+w_pool = mproc.Pool(processes = 15, maxtasksperchild = 2)
 
-img_dict = load_imgs.get_dictionary("./test_pics/")
+img_dict = load_imgs.get_dictionary("./Chameleon_segmented/")
 print "img_dict ready!"
 
 results = {}
@@ -19,10 +19,6 @@ print "Jobs sent!"
 words_dict = {}
 for (k, res) in results.iteritems() :
     words_dict[k] = results[k].get()
-    print "Something's collected", k
 
-print "Jobs collected!"
-a_word_bag = words_dict['001']
-print a_word_bag[34]
 print "Hello words!"
 print "exec time =", (time.time() - start_time)
