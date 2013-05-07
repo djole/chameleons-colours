@@ -5,29 +5,6 @@ from decimal import Decimal
 WHITE_PADDING = 1
 BLACK_PADDING = 2
 
-def subsample_element(in_matrix, row_idx, col_idx, subsample):
-    output = 0.
-    for i in range(subsample):
-        for j in range(subsample):
-            output += in_matrix[2*row_idx + i, 2*col_idx + j]
-    output /= subsample**2
-    return output
-
-def subsample_flatten_matrix(in_matrix, subsample):
-    mat_shape = in_matrix.shape
-    in_row = mat_shape[0]
-    in_col = mat_shape[1]
-    out_row = in_row/subsample
-    out_col = in_col/subsample
-    out_array = np.empty(out_row* out_col)
-    for r in xrange(out_row):
-        for c in xrange(out_col):
-            sub_samp_val = subsample_element(in_matrix, r, c, subsample)
-            flat_idx = r*out_col + c
-            out_array[flat_idx] = sub_samp_val
-    return out_array
-
-
 def get_image_pattern_words(image, word_cols,
                             word_rows=0, padding=WHITE_PADDING):
     """"""
@@ -78,6 +55,27 @@ def get_image_pattern_words(image, word_cols,
             words.append(feature_word)
     
     return words
+def subsample_element(in_matrix, row_idx, col_idx, subsample):
+    output = 0.
+    for i in range(subsample):
+        for j in range(subsample):
+            output += in_matrix[2*row_idx + i, 2*col_idx + j]
+    output /= subsample**2
+    return output
+
+def subsample_flatten_matrix(in_matrix, subsample):
+    mat_shape = in_matrix.shape
+    in_row = mat_shape[0]
+    in_col = mat_shape[1]
+    out_row = in_row/subsample
+    out_col = in_col/subsample
+    out_array = np.empty(out_row* out_col)
+    for r in xrange(out_row):
+        for c in xrange(out_col):
+            sub_samp_val = subsample_element(in_matrix, r, c, subsample)
+            flat_idx = r*out_col + c
+            out_array[flat_idx] = sub_samp_val
+    return out_array
 
 def get_subimage(image, word_shape, word_trans):
     word_cols = word_shape[0]
@@ -126,7 +124,7 @@ def filter_word_with_padding(extract, allowed_padding=0.2,
     else : 
         return False
             
-class work_tests(unittest.TestCase):
+class word_tests(unittest.TestCase):
     
     def get_test_image(self):
         in_data = [[i, i+100, i+200] for i in xrange(100)]
