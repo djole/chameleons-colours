@@ -5,6 +5,29 @@ from decimal import Decimal
 WHITE_PADDING = 1
 BLACK_PADDING = 2
 
+def subsample_element(in_matrix, row_idx, col_idx, subsample):
+    output = 0.
+    for i in range(subsample):
+        for j in range(subsample):
+            output += in_matrix[2*row_idx + i, 2*col_idx + j]
+    output /= subsample**2
+    return output
+
+def subsample_flatten_matrix(in_matrix, subsample):
+    mat_shape = in_matrix.shape
+    in_row = mat_shape[0]
+    in_col = mat_shape[1]
+    out_row = in_row/subsample
+    out_col = in_col/subsample
+    out_array = np.empty(out_row* out_col)
+    for r in xrange(out_row):
+        for c in xrange(out_col):
+            sub_samp_val = subsample_element(in_matrix, r, c, subsample)
+            flat_idx = r*out_col + c
+            out_array[flat_idx] = sub_samp_val
+    return out_array
+
+
 def get_image_pattern_words(image, word_cols,
                             word_rows=0, padding=WHITE_PADDING):
     """"""
@@ -43,13 +66,8 @@ def get_image_pattern_words(image, word_cols,
             cb_component = np.matrix(extract[1], dtype=extract.dtype)
             cr_component = np.matrix(extract[2], dtype=extract.dtype)
             
-            cb_flat = np.array(cb_component.flatten())[0]
-            cr_flat = np.array(cr_component.flatten())[0]
-            
-            cb_subsampled = np.array([s for (idx,s) in enumerate(cb_flat) 
-                                        if idx%subsamp == 0])
-            cr_subsampled = np.array([s for (idx,s) in enumerate(cr_flat) 
-                                        if idx%subsamp == 0])
+            cb_subsampled = subsample_flatten_matrix(cb_component, subsamp)
+            cr_subsampled = subsample_flatten_matrix(cr_component,subsamp)
             c_feat = np.concatenate((cb_subsampled, cr_subsampled), axis=0)
             if Decimal(s_feat) != 0 :
                 c_feat /= float(s_feat)
@@ -130,6 +148,18 @@ class work_tests(unittest.TestCase):
         expected_word_count = 20
         self.assert_(actual_word_count == expected_word_count,
                      "Number of words failure")
+    
+    def test_subsample(self):
+        mat = np.reshape(np.matrix(range(1,17)), (4,4))
+        actual = subsample_flatten_matrix(mat, 2)
+        s_feat = 0.5
+        if Decimal(s_feat) != 0 :
+            actual /= float(s_feat)
+        else:
+            actual *= 0
+        expected = np.array([7, 11, 23, 27])
+        self.assert_(np.array_equal(expected, actual),
+                     "Subsampling method is not correct")
 
 if __name__ == '__main__':
     unittest.main()
