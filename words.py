@@ -1,6 +1,7 @@
 import numpy as np
 import unittest
 from decimal import Decimal
+from image_features import SpatialWordFeature
 
 WHITE_PADDING = 1
 BLACK_PADDING = 2
@@ -51,10 +52,11 @@ def get_image_pattern_words(image, word_cols,
             else:
                 c_feat *= 0
             
-            feature_word = np.concatenate((p_feat, c_feat), axis=0)
+            feature_word = SpatialWordFeature(p_feat, c_feat)
             words.append(feature_word)
     
     return words
+
 def subsample_element(in_matrix, row_idx, col_idx, subsample):
     output = 0.
     for i in range(subsample):
