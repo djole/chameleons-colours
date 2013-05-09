@@ -3,10 +3,9 @@ Created on May 7, 2013
 
 @author: djordje
 '''
+import numpy as np
 
 class SpatialWordFeature:
-    _achrom_word = None
-    _chrom_word = None
     
     def __init__(self, achrom_word, chrom_word):
         self._achrom_word = achrom_word
@@ -17,3 +16,30 @@ class SpatialWordFeature:
     def get_chrom_word(self):
         return self._chrom_word
 
+class SpatialWordHistogram:
+    _histogram = None
+    def __init__(self, hist_size):
+        self._histogram = np.zeros(hist_size)
+    
+    def increment(self, index):
+        self._histogram[index] += 1
+    
+    
+    def __getitem__(self, idx):
+        return self._histogram[idx]/self._histogram.sum()
+        
+def make_codebook_histogram(words_set, codebook):
+    
+    num_codes = len(codebook)
+    code_histogram = SpatialWordHistogram(num_codes)
+    for w_idx in xrange(len(words_set)):
+        min_distance_code = 0
+        min_distance = float('inf')
+        for c_idx in xrange(num_codes):
+            distance = (np.absolute(words_set[w_idx]-codebook[c_idx])).sum()
+            if distance < min_distance:
+                min_distance = distance
+                min_distance_code = c_idx
+        code_histogram.increment(min_distance_code)
+        
+    return code_histogram
