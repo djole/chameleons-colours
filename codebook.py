@@ -9,7 +9,7 @@ import unittest
 CODEBOOK_FSCL = 0
 
 
-class Codebook:
+class Codebook(object):
     
     def __init__(self, num_words, word_size):
         self._codes = []
@@ -29,7 +29,7 @@ class Codebook:
         return len(self._codes)
 
 
-class FSC_learning:
+class FSC_learning(object):
 
     @staticmethod
     def make_codebook(training_set, num_codes = 20,
