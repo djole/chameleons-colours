@@ -4,14 +4,17 @@ import codebook
 import multiprocessing as mproc
 import time
 import image_features
+import pickle
 import gc
+from hierarch_clustering import Complete_link_custering
+from distance import Histograms_distance
 
 start_time = time.time()
 window_size = 10
 
 w_pool = mproc.Pool(processes = 13)
 
-img_dict = load_imgs.get_dictionary("/home/djordje/code/chameleons/test_pics/")
+img_dict = load_imgs.get_dictionary("/home/djordje/code/chameleons/Chameleon_segmented/")
 print "img_dict ready!"
 
 results = {}
@@ -34,7 +37,10 @@ print "Hello words!"
 print num_of_words, "words in the bag"
 print "exec time =", (time.time() - start_time)
 (achrom_codebook, chrom_codebook) = \
-    codebook.make_achrom_chrom_codebooks(words_dict)
+    codebook.make_achrom_chrom_codebooks(words_dict,
+                                         num_train_iter=100,
+                                         num_codes=50,
+                                         training_fact=0.1)
 
 histogram_dictionary = {}
 
@@ -52,6 +58,14 @@ for (k, v) in words_dict.iteritems():
             
     histogram_dictionary[k] = (achrom_hist, chrom_hist)
 
+distance = Histograms_distance()
+clustering = Complete_link_custering(distance)
+top_node = clustering.fit(histogram_dictionary)
+
+pickle_file = open("./top_node_save", 'w')
+pickle.dump(top_node, pickle_file)
+newick_file = open("./newick_tree.tre", 'w')
+newick_file.write(top_node.get_newick_string())
 words_dict = None
 gc.collect()
 
