@@ -7,11 +7,11 @@ import image_features
 import gc
 
 start_time = time.time()
-window_size = 4
+window_size = 10
 
-w_pool = mproc.Pool(processes = 5, maxtasksperchild = 1)
+w_pool = mproc.Pool(processes = 13)
 
-img_dict = load_imgs.get_dictionary("./test_one")
+img_dict = load_imgs.get_dictionary("/home/djordje/code/chameleons/test_pics/")
 print "img_dict ready!"
 
 results = {}
@@ -27,7 +27,7 @@ for (k, res) in results.iteritems():
     words_dict[k] = results[k].get()
     num_of_words += len(words_dict[k])
     num_tasks -= 1
-    print k, "task collected"
+    print k, ". task collected,", len(words_dict[k]), "words in."
     print num_tasks, "tasks left"
 
 print "Hello words!"
@@ -36,8 +36,7 @@ print "exec time =", (time.time() - start_time)
 (achrom_codebook, chrom_codebook) = \
     codebook.make_achrom_chrom_codebooks(words_dict)
 
-achrom_hist_dict = {}
-chrom_hist_dict = {}
+histogram_dictionary = {}
 
 for (k, v) in words_dict.iteritems():
     bag_achrom = []
@@ -46,10 +45,13 @@ for (k, v) in words_dict.iteritems():
         bag_achrom.append(w.get_achrom_word())
         bag_chrom.append(w.get_chrom_word())
     
-    achrom_hist_dict[k] = \
+    achrom_hist = \
             image_features.make_codebook_histogram(bag_achrom,achrom_codebook)
-    chrom_hist_dict[k] = \
+    chrom_hist = \
             image_features.make_codebook_histogram(bag_chrom, chrom_codebook)
+            
+    histogram_dictionary[k] = (achrom_hist, chrom_hist)
+
 words_dict = None
 gc.collect()
 
