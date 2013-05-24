@@ -65,13 +65,13 @@ class FSC_learning(object):
         return codebook
 
 
-def make_achrom_chrom_codebooks(words_dict):
+def make_achrom_chrom_codebooks(words_dict,
+                                num_train_iter=1,
+                                num_codes=10,
+                                training_fact=0.25):
     
     training_set_achrom = []
     training_set_chrom = []
-    num_codes = 10
-    num_train_iter = 1
-    training_fact = 0.25
     
     for feats in words_dict.itervalues():
         for f in feats:
