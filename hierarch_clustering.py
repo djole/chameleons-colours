@@ -47,11 +47,19 @@ class Cluster_node(object):
     
     def points(self):
         return self._cluster_points
+    
     def labels(self):
         return self._labels
     
     def get_children(self):
         return (self._left_child, self._right_child)
+    
+    def get_newick_string(self):
+        if self._left_child == None and self._right_child == None:
+            return [n for n in self._labels][0]#Getting a value from a frozenset
+        else:
+            return ("(" + self._left_child.get_newick_string()
+                    +"," + self._right_child.get_newick_string() + ")")
 
 class Clustering(object):
     __metaclass__ = ABCMeta
@@ -189,6 +197,27 @@ class Cluster_node_test(unittest.TestCase):
         is_same = actual_l == expect_l and actual_p == expect_p
         self.assert_(is_same, "Value mismatch")
     
+    def test_newick_write(self):
+        point_a = 1
+        point_b = 2
+        point_c = 3
+        n1 = Cluster_node(label='a', left_child=None,
+                          right_child=None, point=point_a)
+        n2 = Cluster_node(label='b', left_child=None,
+                          right_child=None, point=point_b)
+        n_12 = Cluster_node(left_child=n1, right_child=n2)
+        n3 = Cluster_node(label='c', left_child=None,
+                          right_child=None, point=point_c)
+        n_m = Cluster_node(left_child=n_12, right_child=n3)
+        
+        expected_tree = '((a,b),c)'
+        actual_tree = n_m.get_newick_string()
+        is_same = expected_tree == actual_tree
+        error_print = "Newick tree incorrect: expected=" + expected_tree\
+                       + ", actual tree=" + actual_tree
+                    
+        self.assert_(is_same, error_print)
+    
     def one_exception_test(self, label, left_child,
                               right_child, point):
         try:
@@ -257,8 +286,8 @@ class Link_Clustering_tests(unittest.TestCase):
         actual_labels_left = left_ch.labels()
         actual_labels_right = right_ch.labels()
         
-        is_correct = ((expected_labels_left == actual_labels_left) or 
-                      (expected_labels_left == actual_labels_right) )
+        is_correct = (expected_labels_left == actual_labels_left or 
+                      expected_labels_left == actual_labels_right)
         assert(is_correct, 'Cluster partitioning incorrect')
         
 
