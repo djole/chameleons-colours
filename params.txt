@@ -6,5 +6,7 @@ training_factor=0.3:float;
 achrom_codewords_name=all_codeword_ACHROM:str;
 chrom_codewords_name=all_codewords_CHROM:str;
 scale_to_vertical_size=1000:int;
+achrom_hist_weight=0.0:float;
+chrom_hist_weight=1.0:float;
 histograms_dict=./histograms/:str;
 window_size=20:int;
