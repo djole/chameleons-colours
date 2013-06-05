@@ -1,0 +1,10 @@
+input_direct=./test_pics2:str;
+num_parallel=5:int;
+train_iter=500:int;
+num_codewords=20:int;
+training_factor=0.3:float;
+achrom_codewords_name=all_codeword_ACHROM:str;
+chrom_codewords_name=all_codewords_CHROM:str;
+scale_to_vertical_size=1000:int;
+histograms_dict=./histograms/:str;
+window_size=20:int;
