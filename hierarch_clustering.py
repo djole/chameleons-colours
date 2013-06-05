@@ -75,6 +75,7 @@ class Clustering(object):
         
         while len(active_nodes) > 1:
             # loop until you reach the root of the cluster tree
+            print "active nodes: ", len(active_nodes)
             closest_nodes = self.find_closest_nodes(active_nodes)
             new_node = Cluster_node(left_child=closest_nodes[0],
                                     right_child=closest_nodes[1])
