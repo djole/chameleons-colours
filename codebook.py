@@ -5,7 +5,8 @@ Created on May 7, 2013
 '''
 import numpy as np
 import unittest
-
+import codeword_visuals as word_vis
+import parameters as P
 CODEBOOK_FSCL = 0
 
 
@@ -66,17 +67,40 @@ class FSC_learning(object):
 
 
 def make_achrom_chrom_codebooks(words_dict,
-                                num_train_iter=1,
-                                num_codes=10,
-                                training_fact=0.25):
+                                    num_train_iter=1,
+                                    num_codes=10,
+                                    training_fact=0.25):
     
     training_set_achrom = []
     training_set_chrom = []
-    
-    for feats in words_dict.itervalues():
+    win_size = P.parameters['window_size']
+    for k, feats in words_dict.iteritems():
+        achrombag_per_ind = []
+        chrombag_per_ind = []
         for f in feats:
             training_set_achrom.append(f.get_achrom_word())
             training_set_chrom.append(f.get_chrom_word())
+            achrombag_per_ind.append(f.get_achrom_word())
+            chrombag_per_ind.append(f.get_chrom_word())
+        word_vis.save_codewords(achrombag_per_ind,
+                                word_vis.ACHROMATIC,
+                                (win_size,win_size),
+                                './words/'+k+'_achrom.tiff')
+        word_vis.save_codewords(chrombag_per_ind,
+                                word_vis.CHROMATIC,
+                                (win_size,win_size),
+                                './words/'+k+'_chrom.tiff')
+    
+    '''Experimetal part. Delete.'''
+    word_vis.save_codewords(training_set_achrom,
+                            word_vis.ACHROMATIC,
+                            (win_size,win_size),
+                            './words/bag_achrom.tiff')
+    word_vis.save_codewords(training_set_chrom,
+                            word_vis.CHROMATIC,
+                            (win_size,win_size),
+                            './words/bag_chrom.tiff')
+    '''End of experimental part'''
     
     print "Training achrom codebook"
     achrom_codebook = FSC_learning.make_codebook(training_set_achrom, num_codes,
