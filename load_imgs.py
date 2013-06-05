@@ -3,6 +3,7 @@
 import cv2
 from os import listdir
 from os.path import isfile, join
+import parameters as P
 
 def get_dictionary(path_to_dir):
     """ Argument is the path to the directory containing images that will be 
@@ -11,7 +12,7 @@ def get_dictionary(path_to_dir):
         Returns the dictionary containing image filename as label and
         image as value (image type is cvmat)."""
    
-    SCALE_TO = 1000
+    SCALE_TO = P.parameters['scale_to_vertical_size']
     files = [ filename
              for filename in listdir(path_to_dir)
              if isfile(join(path_to_dir,filename)) ]
