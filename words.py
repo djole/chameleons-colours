@@ -2,9 +2,11 @@ import numpy as np
 import unittest
 from decimal import Decimal
 from image_features import SpatialWordFeature
+from parameters import parameters
 
 WHITE_PADDING = 1
 BLACK_PADDING = 2
+FIXED_S_FEAT = 255
 
 def get_image_pattern_words(image, word_cols,
                             word_rows=0, padding=WHITE_PADDING):
@@ -47,10 +49,14 @@ def get_image_pattern_words(image, word_cols,
             cb_subsampled = subsample_flatten_matrix(cb_component, subsamp)
             cr_subsampled = subsample_flatten_matrix(cr_component,subsamp)
             c_feat = np.concatenate((cb_subsampled, cr_subsampled), axis=0)
-            if Decimal(s_feat) != 0 :
-                c_feat /= float(s_feat)
+            
+            if parameters['chrom_word_averaging']:
+                if Decimal(s_feat) != 0 :
+                    c_feat /= float(s_feat)
+                else:
+                    c_feat *= 0
             else:
-                c_feat *= 0
+                c_feat /= float(FIXED_S_FEAT)
             
             feature_word = SpatialWordFeature(p_feat, c_feat)
             words.append(feature_word)
@@ -61,7 +67,7 @@ def subsample_element(in_matrix, row_idx, col_idx, subsample):
     output = 0.
     for i in range(subsample):
         for j in range(subsample):
-            output += in_matrix[2*row_idx + i, 2*col_idx + j]
+            output += in_matrix[subsample*row_idx + i, subsample*col_idx + j]
     output /= subsample**2
     return output
 
@@ -160,6 +166,41 @@ class word_tests(unittest.TestCase):
         expected = np.array([7, 11, 23, 27])
         self.assert_(np.array_equal(expected, actual),
                      "Subsampling method is not correct")
-
+    
+    def test_subsample_w2(self):
+        mat = np.reshape(np.matrix(range(1,5)), (2,2))
+        actual = subsample_flatten_matrix(mat, 2)
+        s_feat = 0.5
+        if Decimal(s_feat) != 0 :
+            actual /= float(s_feat)
+        else:
+            actual *= 0
+        expected = np.array([5])
+        self.assert_(np.array_equal(expected, actual),
+                     "Subsampling method is not correct")
+    
+    def test_subsample_noSubsamp(self):
+        mat = np.reshape(np.matrix(range(1,5)), (2,2))
+        actual = subsample_flatten_matrix(mat, 1)
+        s_feat = 1
+        if Decimal(s_feat) != 0 :
+            actual /= float(s_feat)
+        else:
+            actual *= 0
+        expected = np.array([1,2,3,4])
+        self.assert_(np.array_equal(expected, actual),
+                     "Subsampling method is not correct")
+    
+    def test_subsample_3Subsamp(self):
+        mat = np.reshape(np.matrix(range(36)), (6,6))
+        actual = subsample_flatten_matrix(mat, 3)
+        s_feat = 1
+        if Decimal(s_feat) != 0 :
+            actual /= float(s_feat)
+        else:
+            actual *= 0
+        expected = np.array([7,10,25,28])
+        self.assert_(np.array_equal(expected, actual),
+                     "Subsampling method is not correct")
 if __name__ == '__main__':
     unittest.main()
