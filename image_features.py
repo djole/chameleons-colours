@@ -20,13 +20,15 @@ class SpatialWordFeature(object):
 class SpatialWordHistogram(object):
     def __init__(self, hist_size):
         self._histogram = np.zeros(hist_size)
+        self._sum = 0
     
     def increment(self, index):
         self._histogram[index] += 1
+        self._sum += 1
     
     
     def __getitem__(self, idx):
-        return self._histogram[idx]/self._histogram.sum()
+        return self._histogram[idx]/self._sum
     
     def __len__(self):
         return len(self._histogram)
