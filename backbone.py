@@ -47,6 +47,8 @@ print "exec time =", (time.time() - start_time)
 
 histogram_dictionary = {}
 
+print ""
+print "making histograms"
 for (k, v) in words_dict.iteritems():
     bag_achrom = []
     bag_chrom = []
@@ -54,14 +56,26 @@ for (k, v) in words_dict.iteritems():
         bag_achrom.append(w.get_achrom_word())
         bag_chrom.append(w.get_chrom_word())
     
-    print "making achrom histograms"
     achrom_hist = \
             image_features.make_codebook_histogram(bag_achrom,achrom_codebook)
-    print "making chrom histograms"
+
     chrom_hist = \
             image_features.make_codebook_histogram(bag_chrom, chrom_codebook)
             
     histogram_dictionary[k] = (achrom_hist, chrom_hist)
+
+word_vis.save_words(achrom_codebook,
+                        word_vis.ACHROMATIC,
+                        (window_size, window_size),
+                        P.parameters['words_dict']+P.parameters['achrom_codewords_name']+'.tiff',
+                        codewords=True)
+word_vis.save_words(chrom_codebook,
+                        word_vis.CHROMATIC,
+                        (window_size, window_size),
+                        (   P.parameters['words_dict']+
+                            P.parameters['chrom_codewords_name']+
+                            '.tiff'),
+                        codewords=True)
 
 distance = Histograms_distance(chrom_weight=P.parameters['chrom_hist_weight'],
                                achrom_weight=P.parameters['achrom_hist_weight'])
@@ -73,21 +87,12 @@ top_node = clustering.fit(histogram_dictionary)
 '''Saving the results'''
 pickle_file = open("./top_node_save", 'w')
 pickle.dump(top_node, pickle_file)
-newick_file = open("./newick_tree.tre", 'w')
+newick_file = open(P.parameters["tree_name"], 'w')
 newick_file.write(top_node.get_newick_string())
-word_vis.save_codewords(achrom_codebook,
-                        word_vis.ACHROMATIC,
-                        (window_size, window_size),
-                        './'+P.parameters['achrom_codewords_name']+'.tiff')
-word_vis.save_codewords(chrom_codebook,
-                        word_vis.CHROMATIC,
-                        (window_size, window_size),
-                        './'+P.parameters['chrom_codewords_name']+'.tiff')
+
 
 '''Making histograms' visualisation'''
 for k,v in histogram_dictionary.iteritems():
     word_vis.draw_1histogram(histogram_dictionary[k][0], k, 'achrom')
     word_vis.draw_1histogram(histogram_dictionary[k][1], k, 'chrom')
-    
-
 print "the end"
