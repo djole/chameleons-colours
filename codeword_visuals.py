@@ -29,14 +29,17 @@ def codeword_as_img(code_word, word_shape, w_type,
         word_ch2 = code_word[(w_height*w_length):]
         word_ch1 = word_ch1.reshape(word_shape)
         word_ch2 = word_ch2.reshape(word_shape)
+        
+        if P.parameters['chrom_word_averaging']: rescaling_factor = 128
+        else: rescaling_factor = 255.
+        
         for x in xrange(w_height):
             for y in xrange(w_length):
-                val_cb = int(round(word_ch1[x,y]*128))
-                val_cr = int(round(word_ch2[x,y]*128))
+                val_cb = int(round(word_ch1[x,y]*rescaling_factor))
+                val_cr = int(round(word_ch2[x,y]*rescaling_factor))
                 full_channel_img[x,y] = [128, val_cb, val_cr]
                 
-        full_channel_img = cv2.cvtColor(full_channel_img, cv2.cv.CV_BGR2YCrCb)
-#    full_channel_img = cv2.resize(full_channel_img, (0,0), fx=10, fy=10)
+        full_channel_img = cv2.cvtColor(full_channel_img, cv2.cv.CV_YCrCb2BGR)
     return full_channel_img
 
 def show_codewords(code_dict, wtype, wshape):
@@ -48,34 +51,82 @@ def show_codewords(code_dict, wtype, wshape):
     cv2.waitKey()
     
 
-def concatinate_all_imgs(code_dict, wtype, wshape):
+def concatinate_all_imgs(code_dict, wtype, wshape, straight=False):
     code_img = []
     for i in xrange(len(code_dict)):
         code_img.append(codeword_as_img(code_dict[i], wshape, wtype))
-    
-    line = reduce(lambda acc, el:concatinate_2imgs(acc, el), code_img)
+    if straight:
+        line = reduce(lambda acc, el:
+                      concatinate_2imgs(acc, el, place=1), code_img)
+    else:
+        line = glue_images(code_img)
     return line
 
-def save_codewords(code_dict, wtype, wshape, filename):
-    line = concatinate_all_imgs(code_dict, wtype, wshape)
-    cv2.imwrite(filename, line)
+def save_words(code_dict, wtype, wshape, filename, codewords=False):
+    # Codewords are concatenated in straight line
+    if codewords: strght = True
+    else: strght = False
+    line = concatinate_all_imgs(code_dict, wtype, wshape, straight=strght)
     
+    if codewords:
+        line = cv2.resize(line, (0,0), 
+                          fx = 100, fy=100,
+                          interpolation=cv2.INTER_NEAREST)
+    
+    cv2.imwrite(filename, line)
 
-def concatinate_2imgs(img1, img2):
+def glue_images(code_img):
+    storage = []
+    storage.append(list(code_img))
+    storage.append([])
+    switch = 0
+    flip_it = lambda s: (s+1)%2
+    
+    while len(storage[switch]) > 1:
+        # switch holds the index of the list that is currently
+        # used as a storage for the results. It resonates between 0 and 1
+        switch = flip_it(switch)
+        n_imgs = len(storage[flip_it(switch)])
+        for i in xrange(0, n_imgs, 2):
+            if i+1 < n_imgs:
+                img1 = storage[flip_it(switch)][i]
+                img2 = storage[flip_it(switch)][i+1]
+                storage[switch].append(concatinate_2imgs(img1, img2, switch))
+            else:
+                img_ = storage[flip_it(switch)][i]
+                storage[switch].append(img_)
+        storage[flip_it(switch)] = []
+    bucket = storage[switch][0]
+#    bucket = cv2.resize(bucket, (0,0), fx = 2,
+#                        fy=2, interpolation=cv2.INTER_NEAREST)
+    return bucket
+
+def concatinate_2imgs(img1, img2, place=0):
+    ''' place == 0 means that images will be concatenated horizontally,
+        place == 1 means that images will be concatenated vertically'''
     h1, w1 = img1.shape[:2]
     h2, w2 = img2.shape[:2]
+    
+    if place == 0:
+        h = max(h1, h2)
+        w = w1+w2
+    elif place == 1:
+        h = h1 + h2
+        w = max(w1, w2)
+
     if len(img1.shape) == 3 :
         ch = img1.shape[2]
-        vis = np.zeros((max(h1, h2), w1+w2, ch), np.uint8)
+        vis = np.zeros((h, w, ch), np.uint8)
     else:
-        vis = np.zeros((max(h1, h2), w1+w2), np.uint8)
-    vis[:h1, :w1] = img1
-    vis[:h2, w1:w1+w2] = img2
+        vis = np.zeros((h, w), np.uint8)
+        
+    if place == 0:
+        vis[:h1, :w1] = img1
+        vis[:h2, w1:w1+w2] = img2
+    elif place == 1:
+        vis[:h1, :w1] = img1
+        vis[h1:h1+h2, :w2] = img2
     return vis
-
-def draw_codeword_histograms(hist_dict):
-    for (k,v) in hist_dict.iter_items():
-        pass
     
 def draw_1histogram(histogram, label, glabel=''):
     n = len(histogram)
@@ -86,3 +137,13 @@ def draw_1histogram(histogram, label, glabel=''):
     xticks(xrange(n))
     savefig(P.parameters['histograms_dict']+label+glabel+'.png',dpi=72)
     close()
+    
+    
+if __name__ == '__main__':
+    bag = []
+    for i in xrange(900):
+        bag.append(np.zeros((1,1), np.uint8) + 255)
+    m = glue_images(bag)
+    m = cv2.resize(m, (0,0), fx = 100, fy=100, interpolation=cv2.INTER_NEAREST)
+    cv2.imwrite('./words/test_concat.png', m)
+    
