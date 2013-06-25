@@ -7,6 +7,7 @@ from abc import abstractmethod
 from abc import ABCMeta
 import unittest
 from distance import Euclidian_distance
+from parameters import parameters
 
 class Cluster_node(object):
     
@@ -68,14 +69,21 @@ class Clustering(object):
     
     def fit(self, points_dictionary):
         active_nodes = set([])
-        
+        if parameters['verbose']:
+            dump_file = open(parameters["cluster_dump_file"], 'w')
+            
         for (k, v) in points_dictionary.iteritems():
             leaf = Cluster_node(label=k, point=v)
             active_nodes.add(leaf)
-        
         while len(active_nodes) > 1:
             # loop until you reach the root of the cluster tree
-            print "active nodes: ", len(active_nodes)
+            act_str = "active nodes: " + str(len(active_nodes))
+            print act_str
+            if parameters['verbose']:
+                dump_string = (act_str + "\n" +
+                                self.dump_cluster_members(active_nodes))
+                dump_file.write(dump_string)
+                
             closest_nodes = self.find_closest_nodes(active_nodes)
             new_node = Cluster_node(left_child=closest_nodes[0],
                                     right_child=closest_nodes[1])
@@ -98,6 +106,14 @@ class Clustering(object):
                     min_delta = delta
                     closest_nodes = (n1, n2)
         return closest_nodes
+    
+    def dump_cluster_members(self, active_nodes):
+        output_string = ''
+        num_nodes = len(active_nodes)
+        for i,nd in zip(xrange(num_nodes), list(active_nodes)):
+            output_string += "Members of cluster " + str(i) + ":\n"
+            output_string += str(list(nd.labels())) + "\n"
+        return output_string
     
     @abstractmethod
     def nodes_difference(self, n1, n2):
