@@ -5,6 +5,19 @@ from os import listdir
 from os.path import isfile, join
 import parameters as P
 
+
+def resize_(SCALE_TO, img_big, inflate=False):
+    big_dim = max(img_big.shape)
+    if big_dim > SCALE_TO:
+        scale = SCALE_TO / float(big_dim)
+    else:
+        if inflate:
+            scale = SCALE_TO / float(big_dim)
+        else :
+            scale = 1
+    img = cv2.resize(img_big, (0, 0), fx=scale, fy=scale)
+    return img
+
 def get_dictionary(path_to_dir):
     """ Argument is the path to the directory containing images that will be 
         packed to the dictionary.
@@ -29,10 +42,7 @@ def get_dictionary(path_to_dir):
         # Image creation
         img_bgr = cv2.imread(flnm, cv2.CV_LOAD_IMAGE_UNCHANGED)
         img_big = cv2.cvtColor(img_bgr, cv2.cv.CV_BGR2YCrCb)
-        big_dim = max(img_big.shape)
-        if big_dim > SCALE_TO: scale = SCALE_TO/float(big_dim)
-        else: scale = 1
-        img = cv2.resize(img_big, (0,0), fx=scale, fy=scale)
+        img = resize_(SCALE_TO, img_big)
         #Add img to the idx_pic_dict dictionary
         if (img == None): ## Check for invalid input
             print "Could not open or find the image"
