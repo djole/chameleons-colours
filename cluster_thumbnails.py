@@ -7,12 +7,12 @@ import cv2
 from codeword_visuals import glue_images
 from load_imgs import resize_
 
-input_file = "../chameleons_debugs/new/all_chameleons_cluster_dump.txt"
+input_file = "../chameleons_debugs/2x2_chrom_36_codes/all_chameleons_cluster_dump.txt"
 input_imgs_folder = "./Chameleon_segmented/"
 img_filename_extension = "jpg"
-output_folder = "../chameleons_debugs/new/clusters_vis/"
+output_folder = "../chameleons_debugs/2x2_chrom_36_codes/clusters_vis/"
 output_text_filename = output_folder + "clusters_text.txt"
-num_clusters = 12
+num_clusters = 10
 
 with open(input_file, 'r') as fl:
     raw = fl.readlines()
