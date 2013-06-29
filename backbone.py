@@ -1,11 +1,11 @@
-from words import get_image_pattern_words
+from words import get_image_pattern_words, get_image_molecule_pattern_words
 import load_imgs
 import codebook
 import multiprocessing as mproc
 import time
 import image_features
 import pickle
-from hierarch_clustering import Complete_link_custering
+from hierarch_clustering import Complete_link_custering, Average_link_clustering
 from distance import Histograms_distance
 import codeword_visuals as word_vis
 import parameters as P
@@ -20,6 +20,7 @@ print "img_dict ready!"
 
 results = {}
 for (k, img) in img_dict.iteritems() :
+    get_image_molecule_pattern_words(img, window_size)
     results[k] = w_pool.apply_async(get_image_pattern_words,
                                     (img, window_size))
 print "Jobs sent!"
@@ -79,7 +80,8 @@ word_vis.save_words(chrom_codebook,
 
 distance = Histograms_distance(chrom_weight=P.parameters['chrom_hist_weight'],
                                achrom_weight=P.parameters['achrom_hist_weight'])
-clustering = Complete_link_custering(distance)
+#clustering = Complete_link_custering(distance)
+clustering = Average_link_clustering(distance)
 print "start clustering"
 top_node = clustering.fit(histogram_dictionary)
 
