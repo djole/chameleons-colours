@@ -3,6 +3,8 @@ import unittest
 from decimal import Decimal
 from image_features import SpatialWordFeature
 from parameters import parameters
+import cv2
+from numpy.core.numeric import dtype
 
 WHITE_PADDING = 1
 BLACK_PADDING = 2
@@ -63,6 +65,46 @@ def get_image_pattern_words(image, word_cols,
     
     return words
 
+def get_image_molecule_pattern_words(image, word_cols,
+                            word_rows=0, padding=WHITE_PADDING):
+    """"""
+    assert image.shape[2] == 3
+    
+    if word_rows == 0:
+        word_rows = word_cols
+    
+    imageBGR = cv2.cvtColor(image, cv2.cv.CV_YCrCb2BGR)
+    imageHSV = cv2.cvtColor(imageBGR, cv2.cv.CV_BGR2HSV)
+    image_cols = image.shape[1]
+    image_rows = image.shape[0]
+    num_word_cols = image_cols / word_cols
+    num_word_rows = image_rows / word_rows
+    words = []
+    for w_r in xrange(num_word_rows):
+        for w_c in xrange(num_word_cols):
+            
+            word_trans = (w_r*word_rows, w_c*word_cols)
+            word_shape = (word_cols, word_rows)
+            extract = get_subimage(imageHSV, word_shape, word_trans)
+            extract = np.array(extract, dtype=np.uint8)
+            # [channel, row, column]
+            ''' channel[0] is Y component.
+            Feature S is the mean of Y component.
+            Feature P is the Y matrix normalized by S
+            and represents the achromatic colour feature'''
+            if not filter_word_with_padding(extract) : continue
+            hue_component = np.array(extract[0], dtype=extract.dtype)
+            red_conponent = hue_to_red(hue_component)
+            yellow_component = hue_to_yellow(hue_component)
+    
+    return words
+
+def hue_to_red(hue):
+    pass
+
+def hue_to_yellow(hue):
+    pass
+
 def subsample_element(in_matrix, row_idx, col_idx, subsample):
     output = 0.
     for i in range(subsample):
@@ -100,37 +142,51 @@ def get_subimage(image, word_shape, word_trans):
 
 
 def filter_word_with_padding(extract, allowed_padding=0.2,
-                             padding=WHITE_PADDING):
+                             padding=WHITE_PADDING, colorspace='YCrCb'):
     """ Returns a boolean value that tells if a bag of pixel values should pass the filter
     Parameters
     ----------
-    extract : A 3D array of pixel values in YCbCr colour space
-        Dimensions of the array are [channel (Y,Cb,Cr), row, column]
+    extract : A 3D array of pixel values in YCbCr or HSV colour space
+        Dimensions of the array are [channel (Y/H,Cb/S,Cr/V), row, column]
    
     Returns
     -------
     pass_ : boolean
         If the extract is part of the padding part of the image"""
-    
-    y_elements = extract[0].flatten('C')
-    cb_elements = extract[1].flatten('C')
-    cr_elements = extract[2].flatten('C')
+    fst_elements = extract[0].flatten('C') # Y or H
+    scnd_elements = extract[1].flatten('C') # Cb or S
+    thrd_elements = extract[2].flatten('C') #Cr or V
     
     num_elements = extract.shape[1]*extract.shape[2]
     
     if padding == WHITE_PADDING : extreme = 255
     elif padding == BLACK_PADDING : extreme = 0
     
+    if colorspace == 'YCrCb':
+        fst_extreme = extreme
+        scnd_extreme = 128
+        thrd_extreme = 128
+    elif colorspace == 'HSV':
+        fst_extreme = 0
+        scnd_extreme = 0
+        thrd_extreme = extreme
+    elif colorspace == 'RGB' or colorspace == "BGR":
+        fst_extreme = extreme
+        scnd_extreme = extreme
+        thrd_extreme = extreme
+    
     num_padds = 0
     for i in xrange(num_elements):
-        if (y_elements[i] == extreme 
-                    and cb_elements[i] == 128 and cr_elements[i] == 128):
-            num_padds += 1
+        if (fst_elements[i] == fst_extreme 
+            and scnd_elements[i] == scnd_extreme
+            and thrd_elements[i] == thrd_extreme):
+                num_padds += 1
     
     if float(num_padds)/num_elements <= allowed_padding : 
         return True
     else : 
         return False
+
             
 class word_tests(unittest.TestCase):
     
@@ -148,6 +204,7 @@ class word_tests(unittest.TestCase):
                      "Image segment is not as expected")
         
     def test_get_pattern(self):
+        parameters['chrom_word_averaging'] = True
         image = self.get_test_image()
         words = get_image_pattern_words(image, 2)
         actual_word_count = len(words)
